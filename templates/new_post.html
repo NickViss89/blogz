@@ -3,15 +3,14 @@
 {% block content %}
     <h1>Write a blog!</h1>
     <form action="/newpost" method='post'>
-        <p class=error>{{req_error}}</p>
         <label>
             Title:
-            <input type="text" name='title' />
+            <input type="text" name='blog_title' value='{{blog_title}}'/><p class='error'>{{title_error}}</p>
             
         </label><br>
         <label>
             Body:
-            <textarea name="body"> </textarea>
+            <textarea name="blog_body" value='{{blog_body}}'></textarea><p class='error'>{{body_error}}</p>
         </label><br>
         <input type="submit" value='Publish' />
     </form>
