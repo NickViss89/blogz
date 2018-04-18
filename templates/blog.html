@@ -8,6 +8,7 @@
         {% for post in posts %}
             <h1><a href='/blog?id={{post.id}}'>{{post.title}}</a></h1>
                 <p>{{post.body}}</p>
+                <h6 class="author">Written by {{username}}</h6>
                 <hr>
         {% endfor %}
 

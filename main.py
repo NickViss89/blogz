@@ -33,7 +33,7 @@ class User(db.Model):
 
 @app.before_request
 def require_login():
-    allowed_routes = ['login', 'register']
+    allowed_routes = ['login', 'register', 'blog']
     if request.endpoint not in allowed_routes and 'username' not in session:
         return redirect('/login')
 
@@ -43,6 +43,8 @@ def login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
+
+        password_error = "Password doesn't match our records"
         user = User.query.filter_by(username=username).first()
         if user and user.password == password:
             session['username'] = username
@@ -50,8 +52,7 @@ def login():
             print(session)
             return redirect('/')
         else:
-           flash('User password incorrect, or user does not exist', 'error')
-
+           return render_template('login.html', password_error=password_error)
     return render_template('login.html')
 
 @app.route('/register', methods=['POST', 'GET'])
@@ -60,19 +61,34 @@ def register():
         username = request.form['username']
         password = request.form['password']
         verify = request.form['verify']
-
-        #TODO - validate user's data
-
         existing_user = User.query.filter_by(username=username).first()
-        if not existing_user:
+
+        username_error = ""
+        password_error = ""
+        verify_error = ""
+        existing_error = ""
+
+        if len(username) == 0 or len(username) < 3 or len(username) > 20 or ' ' in username:
+            username_error = "Not a valid username"
+    
+        if len(password) == 0 or len(password) < 3 or len(password) > 20 or ' ' in password:
+            password_error = "Not a valid password"
+    
+        if verify != password:
+            verify_error = "Passwords don't match"
+
+        if existing_user:
+            existing_error = "Username taken"
+
+        if username_error or password_error or verify_error or existing_user:
+            return render_template('register.html', username=username, username_error=username_error, password_error=password_error, verify_error=verify_error, existing_error=existing_error)  
+            
+        elif not existing_user:
             new_user = User(username, password)
             db.session.add(new_user)
             db.session.commit()
             session['username'] = username
-            return redirect('/')
-        else:
-            #TODO - better user response
-            return'<h1>duplicate user</h1>'
+            return redirect('/')                
     
     return render_template('register.html')
 
@@ -106,6 +122,7 @@ def blog_entries():
             db.session.add(new_blog)
             db.session.commit()
             post = new_blog.id
+            author = User.query.filter_by(id =new_blog.owner_id).first()
             return redirect('/blog?id=' + str(post))
     return render_template('new_post.html')
       
@@ -114,11 +131,13 @@ def blog():
 
     posts = Blog.query.all()
     id = request.args.get('id')
+    username = request.args.get('username')
+    author = User.query.filter_by(username=username).first()
     unique_id = Blog.query.filter_by(id=id).first()
     if not unique_id:
-        return render_template("blog.html", posts=posts)
+        return render_template("blog.html", posts=posts, username=author)
     else:
-        return render_template("single_post.html", post=unique_id)
+        return render_template("single_post.html", post=unique_id, author=username)
 
 
 
