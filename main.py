@@ -24,7 +24,7 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(120), unique=True)
     password = db.Column(db.String(120))
-    blogs = db.relationship('Blog', backref='owner.id')
+    blogs = db.relationship('Blog', backref='owner')
 
     def __init__(self, username, password):
         self.username = username
@@ -122,7 +122,7 @@ def blog_entries():
             db.session.add(new_blog)
             db.session.commit()
             post = new_blog.id
-            author = User.query.filter_by(id =new_blog.owner_id).first()
+            author = User.query.filter_by(id=username.owner).first()
             return redirect('/blog?id=' + str(post))
     return render_template('new_post.html')
       
@@ -132,7 +132,7 @@ def blog():
     posts = Blog.query.all()
     id = request.args.get('id')
     username = request.args.get('username')
-    author = User.query.filter_by(username=username).first()
+    author = User.query.filter_by(username=id).first()
     unique_id = Blog.query.filter_by(id=id).first()
     if not unique_id:
         return render_template("blog.html", posts=posts, username=author)
