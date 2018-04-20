@@ -122,23 +122,30 @@ def blog_entries():
             db.session.add(new_blog)
             db.session.commit()
             post = new_blog.id
-            author = User.query.filter_by(id=username.owner).first()
+            author = User.query.filter_by(id=id).first()
             return redirect('/blog?id=' + str(post))
     return render_template('new_post.html')
       
 @app.route("/blog", methods=['GET', 'POST'])
 def blog():
-
     posts = Blog.query.all()
+    authors = User.query.all()
     id = request.args.get('id')
+    
     username = request.args.get('username')
     author = User.query.filter_by(username=id).first()
     unique_id = Blog.query.filter_by(id=id).first()
+
     if not unique_id:
         return render_template("blog.html", posts=posts, username=author)
+    if author:
+        return render_template("singleUser.html", posts=posts, username=username)
     else:
         return render_template("single_post.html", post=unique_id, author=username)
+        
 
+    
+    
 
 
 

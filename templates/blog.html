@@ -6,7 +6,7 @@
         <p>No posts yet</p>
         {% else %}
         {% for post in posts %}
-            <h1><a href='/blog?id={{post.id}}'>{{post.title}}</a></h1>
+            <h1><a href='/blog?id={{post.id}}' method='post'>{{post.title}}</a></h1>
                 <p>{{post.body}}</p>
                 <h6 class="author">Written by:  <a href="/blog?userid={{post.owner_id}}">{{post.owner.username}}</a></h6>
                 <hr>
