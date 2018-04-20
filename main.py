@@ -33,7 +33,7 @@ class User(db.Model):
 
 @app.before_request
 def require_login():
-    allowed_routes = ['login', 'register', 'blog']
+    allowed_routes = ['login', 'register', 'blog', '/']
     if request.endpoint not in allowed_routes and 'username' not in session:
         return redirect('/login')
 
@@ -97,9 +97,10 @@ def logout():
     del session['username']
     return redirect('/login')
 
-@app.route('/', methods=['POST', 'GET'])
+@app.route('/')
 def index():
-    return redirect('/blog')
+    users = User.query.all()
+    return render_template('index.html', users=users)
 
    
 @app.route("/newpost", methods=['POST', 'GET'])
@@ -131,20 +132,17 @@ def blog():
     posts = Blog.query.all()
     authors = User.query.all()
     id = request.args.get('id')
-    
-    username = request.args.get('username')
-    author = User.query.filter_by(username=id).first()
+    userID = request.args.get('username')
+    author = User.query.filter_by(username=userID).first()
     unique_id = Blog.query.filter_by(id=id).first()
 
     if not unique_id:
         return render_template("blog.html", posts=posts, username=author)
-    if author:
-        return render_template("singleUser.html", posts=posts, username=username)
+    elif userID:
+        return render_template("singleUser.html", posts=posts, title=post.title, body=post.body)
     else:
-        return render_template("single_post.html", post=unique_id, author=username)
+        return render_template("single_post.html", post=unique_id, author=userID)
         
-
-    
     
 
 
