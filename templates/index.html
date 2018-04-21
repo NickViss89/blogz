@@ -4,6 +4,6 @@
         <h1>Authors</h1>
         <hr>
         {% for user in users %}
-        <p class="users"><a href="/blog?userid={{user.id}}">{{ user.username }}</a></p>
+        <p class="users"><a href="/blog?user={{user.username}}">{{ user.username }}</a></p>
         {% endfor %}
 {% endblock %}
