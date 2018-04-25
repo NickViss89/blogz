@@ -1,5 +1,6 @@
 from flask import Flask, request, redirect, render_template, flash, session
 from flask_sqlalchemy import SQLAlchemy
+from hashutils import make_pw_hash, check_pw_hash
 
 app = Flask(__name__)
 app.config['DEBUG'] = True
@@ -23,12 +24,12 @@ class Blog(db.Model):
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(120), unique=True)
-    password = db.Column(db.String(120))
+    pw_hash = db.Column(db.String(120))
     blogs = db.relationship('Blog', backref='owner')
 
     def __init__(self, username, password):
         self.username = username
-        self.password = password
+        self.pw_hash = make_pw_hash(password)
 
 
 @app.before_request
@@ -43,16 +44,15 @@ def login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-
+        username_error = "Username not in database"
         password_error = "Password doesn't match our records"
         user = User.query.filter_by(username=username).first()
-        if user and user.password == password:
+        if user and check_pw_hash(password, user.pw_hash):
             session['username'] = username
             flash("Logged in")
-            print(session)
             return redirect('/')
         else:
-           return render_template('login.html', password_error=password_error)
+           return render_template('login.html', username_error=username_error, password_error=password_error)
     return render_template('login.html')
 
 @app.route('/register', methods=['POST', 'GET'])
@@ -95,7 +95,7 @@ def register():
 @app.route('/logout')
 def logout():
     del session['username']
-    return redirect('/login')
+    return redirect('/blog')
 
 @app.route('/')
 def index():
@@ -122,9 +122,8 @@ def blog_entries():
             new_blog = Blog(blog_title, blog_body, owner)
             db.session.add(new_blog)
             db.session.commit()
-            post = new_blog.id
-            author = User.query.filter_by(id=id).first()
-            return redirect('/blog?id=' + str(post))
+            post = str(new_blog.id)
+            return redirect('/blog?id=' + post)
     return render_template('new_post.html')
       
 @app.route("/blog", methods=['GET', 'POST'])
